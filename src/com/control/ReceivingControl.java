@@ -7,6 +7,7 @@ package com.control;
 
 import com.model.Receiving;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import java.util.HashSet;
  * @author song
  */
 public class ReceivingControl  {
-    private Receiving[] receivingData;
+    private ArrayList<Receiving> receivingData;
     private HashSet itemVariety;
     private HashSet siteVariety;
     private HashSet vendorVariety;
@@ -40,20 +41,20 @@ public class ReceivingControl  {
         monthQuantity = new HashMap<>();
         yearQuantity = new HashMap<>();
     }
-    public void setReceivingData(Receiving[] d)
+    public void setReceivingData(ArrayList<Receiving> d)
     {
         this.receivingData = d;
         setItemHold();
     }
     private void setItemHold()
     {
-        for (int i = 0; i < receivingData.length; i++)
+        for (int i = 0; i < receivingData.size(); i++)
         {
-            int quantity = receivingData[i].getQuantity();
-            int item = receivingData[i].getItem();
-            char site = receivingData[i].getSite();
-            int vendor = receivingData[i].getVendor();
-            Date date = receivingData[i].getDate();
+            int quantity = receivingData.get(i).getQuantity();
+            int item = receivingData.get(i).getItem();
+            char site = receivingData.get(i).getSite();
+            int vendor = receivingData.get(i).getVendor();
+            Date date = receivingData.get(i).getDate();
             cal.setTime(date);
             String day = new SimpleDateFormat("MM-dd-yyyy").format(date);
             String month = new SimpleDateFormat("MM-yyyy").format(date);
@@ -74,7 +75,7 @@ public class ReceivingControl  {
             if (vendorQuantity.containsKey(vendor))
                 vendorQuantity.put(vendor, ((int)vendorQuantity.get(vendor) + quantity));
             else 
-                vendorQuantity.put(receivingData[i].getVendor(), quantity);
+                vendorQuantity.put(receivingData.get(i).getVendor(), quantity);
             
             if (dayQuantity.containsKey(day))
                 dayQuantity.put(day, ((int)dayQuantity.get(day) + quantity));

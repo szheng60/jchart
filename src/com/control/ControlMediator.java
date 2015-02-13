@@ -7,6 +7,7 @@ package com.control;
 
 import com.model.Item;
 import com.model.Receiving;
+import java.util.ArrayList;
 
 /**
  *
@@ -45,7 +46,7 @@ public class ControlMediator {
     /**
      * @param theReceivingControl the theReceivingControl to set
      */
-    public void setTheReceivingControl(Receiving[] receivings) {
+    public void setTheReceivingControl(ArrayList<Receiving> receivings) {
         this.theReceivingControl.setReceivingData(receivings);
     }
 

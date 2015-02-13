@@ -10,9 +10,12 @@ import com.model.Excel;
 import com.model.Receiving;
 import java.awt.Color;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -33,6 +36,70 @@ public class TimeSeriesChartView {
     {
 
     }
+    public JFreeChart getVendorTimeSeriesChart(Excel theExcel, String vendor)
+    {
+        int vendorCode = Integer.parseInt(vendor);
+        ArrayList<Receiving> theReceiving = theExcel.getSheetReceiving();
+         
+//        HashMap<Month, Integer> item1Map = new HashMap<>();
+//        HashMap<Month, Integer> item2Map = new HashMap<>();
+//        HashMap<Month, Integer> item3Map = new HashMap<>();
+        Set vendorItem = new HashSet();
+        for (int i = 0; i < theReceiving.size(); i++)
+        {
+            vendorItem.add(theReceiving.get(i).getItem());
+        }
+        TimeSeries data[] = new TimeSeries[vendorItem.size()];
+        HashMap<Month, Integer> itemMap[] = new HashMap[vendorItem.size()];
+        for (int i = 0; i < vendorItem.size(); i++)
+        {
+            String itemName = "item" + i;
+            data[i] = new TimeSeries(itemName);
+            itemMap[i] = new HashMap<>();
+        }
+        Calendar cal = Calendar.getInstance();
+        for (int i = 0; i < theReceiving.size(); i++)
+        {
+            cal.setTime(theReceiving.get(i).getDate());
+            int month = cal.get(Calendar.MONTH) + 1;
+            int year = cal.get(Calendar.YEAR);
+            int quantity = 0;
+            if (theReceiving.get(i).getVendor() == vendorCode)
+            {
+                quantity = theReceiving.get(i).getQuantity();
+                Month theMonth = new Month(month, year);            
+                int itemNum = theReceiving.get(i).getItem()-1;
+                itemMap[itemNum].put(theMonth, updateItemMap(itemMap[itemNum], theMonth, quantity));
+            }
+        }
+        TimeSeriesCollection my_data_series = new TimeSeriesCollection();
+        for (int i = 0; i < vendorItem.size(); i++)
+        {
+            for (Map.Entry<Month, Integer> entry:itemMap[i].entrySet()) {
+                data[i].add(entry.getKey(), entry.getValue());
+            }
+            my_data_series.addSeries(data[i]);
+        }
+       
+        JFreeChart chart = ChartFactory.createTimeSeriesChart("Receiving","Month","Quantity",my_data_series,true,true,false);        
+        chart.setBackgroundPaint(Color.YELLOW);
+        XYPlot plot = (XYPlot) chart.getPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setDomainGridlinePaint(Color.GREEN);
+        plot.setRangeGridlinePaint(Color.orange);
+        plot.setAxisOffset(new RectangleInsets(50, 0, 20, 5));
+        plot.setDomainCrosshairVisible(true);
+        plot.setRangeCrosshairVisible (true);   
+
+        XYLineAndShapeRenderer  renderer = (XYLineAndShapeRenderer) plot.getRenderer();      
+
+        renderer.setBaseShapesVisible(true);
+        renderer.setBaseShapesFilled (true);                               
+
+        DateAxis axis = (DateAxis) plot.getDomainAxis();
+        axis.setDateFormatOverride(new SimpleDateFormat("MM.yyyy"));
+        return chart;
+    }
     public JFreeChart getTimeSeriesChart(Excel theExcel, ReceivingControl theRC)
     {
         
@@ -46,7 +113,7 @@ public class TimeSeriesChartView {
 //        TimeSeries item1_xy_data = new TimeSeries("Item1");
 //        TimeSeries item2_xy_data = new TimeSeries("Item2");
 //        TimeSeries item3_xy_data = new TimeSeries("Item3");
-        Receiving theReceiving[] = theExcel.getSheetReceiving();
+        ArrayList<Receiving> theReceiving = theExcel.getSheetReceiving();
         
 //        HashMap<Month, Integer> item1Map = new HashMap<>();
 //        HashMap<Month, Integer> item2Map = new HashMap<>();
@@ -61,14 +128,14 @@ public class TimeSeriesChartView {
             itemMap[i] = new HashMap<>();
         }
         Calendar cal = Calendar.getInstance();
-        for (int i = 0; i < theReceiving.length; i++)
+        for (int i = 0; i < theReceiving.size(); i++)
         {
-            cal.setTime(theReceiving[i].getDate());
+            cal.setTime(theReceiving.get(i).getDate());
             int month = cal.get(Calendar.MONTH) + 1;
             int year = cal.get(Calendar.YEAR);
-            int quantity = theReceiving[i].getQuantity();
+            int quantity = theReceiving.get(i).getQuantity();
             Month theMonth = new Month(month, year);            
-            int itemNum = theReceiving[i].getItem()-1;
+            int itemNum = theReceiving.get(i).getItem()-1;
             itemMap[itemNum].put(theMonth, updateItemMap(itemMap[itemNum], theMonth, quantity));
 //            if (theReceiving[i].getItem() == 1)
 //            {
