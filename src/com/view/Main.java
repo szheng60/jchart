@@ -5,30 +5,18 @@
  */
 package com.view;
 
+import com.control.ControlMediator;
 import com.model.Excel;
-import com.model.Receiving;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Month;
-import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
-import org.jfree.ui.RectangleInsets;
 
 /**
  *
@@ -36,7 +24,7 @@ import org.jfree.ui.RectangleInsets;
  */
 public class Main extends javax.swing.JFrame {
     private Excel theExcel;
-
+    public static ControlMediator theCM = new ControlMediator();
     /**
      * Creates new form Main
      */
@@ -130,84 +118,15 @@ public class Main extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void viewGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewGraphButtonActionPerformed
-        TimeSeries item1_xy_data = new TimeSeries("Item1");
-        TimeSeries item2_xy_data = new TimeSeries("Item2");
-        TimeSeries item3_xy_data = new TimeSeries("Item3");
-        Receiving theReceiving[] = this.theExcel.getSheetReceiving();
-        
-        HashMap<Month, Integer> item1Map = new HashMap<>();
-        HashMap<Month, Integer> item2Map = new HashMap<>();
-        HashMap<Month, Integer> item3Map = new HashMap<>();
-        Calendar cal = Calendar.getInstance();
-        for (int i = 0; i < theReceiving.length; i++)
-        {
-            cal.setTime(theReceiving[i].getDate());
-            int month = cal.get(Calendar.MONTH) + 1;
-            int year = cal.get(Calendar.YEAR);
-            int quantity = theReceiving[i].getQuantity();
-            Month theMonth = new Month(month, year);            
-            
-            if (theReceiving[i].getItem() == 1)
-            {
-                item1Map.put(theMonth, updateItemMap(item1Map, theMonth, quantity));
-            }
-            else if (theReceiving[i].getItem() == 2)
-            {
-                item2Map.put(theMonth, updateItemMap(item2Map, theMonth, quantity));
-            }
-            else if (theReceiving[i].getItem() == 3)
-            {
-                item3Map.put(theMonth, updateItemMap(item3Map, theMonth, quantity));
-            }
-        }
-        for (Map.Entry<Month, Integer> entry:item1Map.entrySet()) {
-            item1_xy_data.add(entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<Month, Integer> entry:item2Map.entrySet()) {
-            item2_xy_data.add(entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<Month, Integer> entry:item3Map.entrySet()) {
-            item3_xy_data.add(entry.getKey(), entry.getValue());
-        }
-        
-        TimeSeriesCollection my_data_series = new TimeSeriesCollection();
-        // add series using addSeries method
-        my_data_series.addSeries(item1_xy_data);
-        my_data_series.addSeries(item2_xy_data);
-        my_data_series.addSeries(item3_xy_data);        
-        JFreeChart chart = ChartFactory.createTimeSeriesChart("Receiving","Month","Quantity",my_data_series,true,true,false);        
-        chart.setBackgroundPaint(Color.YELLOW);
-        XYPlot plot = (XYPlot) chart.getPlot();
-        plot.setBackgroundPaint(Color.WHITE);
-        plot.setDomainGridlinePaint(Color.GREEN);
-        plot.setRangeGridlinePaint(Color.orange);
-        plot.setAxisOffset(new RectangleInsets(50, 0, 20, 5));
-        plot.setDomainCrosshairVisible(true);
-        plot.setRangeCrosshairVisible (true);   
 
-        XYLineAndShapeRenderer  renderer = (XYLineAndShapeRenderer) plot.getRenderer();      
-
-        renderer.setBaseShapesVisible(true);
-        renderer.setBaseShapesFilled (true);                               
-
-        DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("MM.yyyy"));
-        
-        ChartPanel chartPanel = new ChartPanel(chart);
+        TimeSeriesChartView tscv = new TimeSeriesChartView();
+        ChartPanel chartPanel = new ChartPanel(tscv.getTimeSeriesChart(theExcel, theCM.getTheReceivingControl()));
         panel.removeAll();
         panel.add(chartPanel, BorderLayout.CENTER);
         panel.validate();      
 
     }//GEN-LAST:event_viewGraphButtonActionPerformed
-    private int updateItemMap(HashMap<Month, Integer> itemMap, Month theMonth, int quantity) {
-        int quan = 0;
-        if (itemMap.containsKey(theMonth)) {
-            int temp = itemMap.get(theMonth);
-            temp += quantity;
-            quan = temp;
-        }    
-        return quan;
-    }
+
     private void filePathBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filePathBrowseButtonActionPerformed
         final JFileChooser fileChooser = new JFileChooser(".");
         final FileNameExtensionFilter filter = new FileNameExtensionFilter("Excel files", "xlsx", "xls");
@@ -222,8 +141,7 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_filePathBrowseButtonActionPerformed
 
     private void filePathRunButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filePathRunButtonActionPerformed
-        String filePath = filePathTextField.getText();
-        
+        String filePath = filePathTextField.getText();        
         try {
             this.theExcel = new Excel(filePath);
             theExcel.initialize();

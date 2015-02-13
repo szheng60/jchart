@@ -1,10 +1,11 @@
 package com.model;
 
-
+import static com.view.Main.theCM;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -19,13 +20,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Excel {
     
-    private Sheet excelSheets[];
+    private ArrayList<Sheet> excelSheets;
     private String filePath;
-    private Item sheetItem[];
-    private Site sheetSite[];
-    private Sales sheetSales[];
-    private Supplier sheetSupplier[];
-    private Receiving sheetReceiving[];
+    private ArrayList<Item> sheetItem;
+    private ArrayList<Site> sheetSite;
+    private ArrayList<Sales> sheetSales;
+    private ArrayList<Supplier> sheetSupplier;
+    private ArrayList<Receiving> sheetReceiving;
+    private ArrayList<String> sheetName;
     
     public Excel(String filePath) throws IOException
     {
@@ -33,28 +35,58 @@ public class Excel {
     }
     public void initialize() throws IOException {
         this.setExcelSheets(readExcelFile());
-        this.setSheetItem(initializeItem(this.getExcelSheets()[0]));
-        this.setSheetSite(initializeSite(this.getExcelSheets()[1]));
-        this.setSheetSupplier(initializeSupplier(this.getExcelSheets()[2]));
-        this.setSheetReceiving(initializeReceiving(this.getExcelSheets()[3]));
-        this.setSheetSales(initializeSales(this.getExcelSheets()[4]));
+        for (int i = 0; i < this.excelSheets.size(); i++)
+        {    
+            initializeSheet(sheetName.get(i), this.excelSheets.get(i));
+        }
     }
-    private Item[] initializeItem(Sheet item)
+    private void initializeSheet(String sheetName, Sheet sheet)
     {
-        Item theItem[] = new Item[item.getLastRowNum()];
+        switch (sheetName.toUpperCase())
+        {
+            case "ITEM":
+                this.sheetItem = initializeItem(sheet);
+                //theCM.setTheItemControl(this.sheetItem);
+                break;
+            case "SITE":
+                this.sheetSite = initializeSite(sheet);
+                break;
+            case "SUPPLIER":
+                this.sheetSupplier = initializeSupplier(sheet);
+                break;
+            case "RECEIVING":
+                this.sheetReceiving = initializeReceiving(sheet);
+                theCM.setTheReceivingControl(this.sheetReceiving);
+                break;
+            case "SALES":
+                this.sheetSales = initializeSales(sheet);
+                break;
+            default:
+                break;
+        }
+        
+    }
+    private ArrayList<Item> initializeItem(Sheet item)
+    {
+        ArrayList<Item> theItem = new ArrayList<>();//Item[item.getLastRowNum()];
         Iterator rows = item.rowIterator();
         rows.next();
         int i = 0;
         while (rows.hasNext()) {
             Row row = (Row) rows.next();  
-            theItem[i] = new Item();
+            Item tempItem = new Item();
+            //theItem[i] = new Item();
             Iterator cells = row.cellIterator(); 
-                
-            theItem[i].setCode((int)((Cell) cells.next()).getNumericCellValue());
-            theItem[i].setDescription(((Cell) cells.next()).getStringCellValue());
-            theItem[i].setPurchasePrice(((Cell) cells.next()).getNumericCellValue());
-            theItem[i].setRetailPrice(((Cell) cells.next()).getNumericCellValue());
-            i++;
+            tempItem.setCode((int)((Cell) cells.next()).getNumericCellValue());
+            tempItem.setDescription(((Cell) cells.next()).getStringCellValue());
+            tempItem.setPurchasePrice(((Cell) cells.next()).getNumericCellValue());
+            tempItem.setRetailPrice(((Cell) cells.next()).getNumericCellValue());
+//            theItem[i].setCode((int)((Cell) cells.next()).getNumericCellValue());
+//            theItem[i].setDescription(((Cell) cells.next()).getStringCellValue());
+//            theItem[i].setPurchasePrice(((Cell) cells.next()).getNumericCellValue());
+//            theItem[i].setRetailPrice(((Cell) cells.next()).getNumericCellValue());
+            theItem.add(tempItem);
+//            i++;
         }
         return theItem;
     }
@@ -67,8 +99,7 @@ public class Excel {
         while (rows.hasNext()) {
             Row row = (Row) rows.next();  
             theSite[i] = new Site();
-            Iterator cells = row.cellIterator(); 
-            
+            Iterator cells = row.cellIterator();             
             theSite[i].setCode(((Cell) cells.next()).getStringCellValue().charAt(0));
             theSite[i].setDescription(((Cell) cells.next()).getStringCellValue());
             i++;
@@ -84,8 +115,7 @@ public class Excel {
         while (rows.hasNext()) {
             Row row = (Row) rows.next();  
             theSupplier[i] = new Supplier();
-            Iterator cells = row.cellIterator(); 
-                
+            Iterator cells = row.cellIterator();                 
             theSupplier[i].setCode((int)((Cell) cells.next()).getNumericCellValue());
             theSupplier[i].setDescription(((Cell) cells.next()).getStringCellValue());
             i++;
@@ -142,9 +172,10 @@ public class Excel {
                 wb_xssf = new XSSFWorkbook(in);
                 int numberOfSheets = wb_xssf.getNumberOfSheets();
                 sheet = new Sheet[numberOfSheets];
+                this.sheetName = new String[numberOfSheets];
                 for (int i = 0; i < numberOfSheets; i++)
                 {
-                    //String sheetName = wb_xssf.getSheetName(i);
+                    this.sheetName[i] = wb_xssf.getSheetName(i);
                     sheet[i] = wb_xssf.getSheetAt(i);
                 }                
             }
@@ -155,7 +186,7 @@ public class Excel {
                 sheet = new Sheet[numberOfSheets];
                 for (int i = 0; i < numberOfSheets; i++)
                 {
-                    //System.out.println("xls=" + wb_hssf.getSheetName(0));
+                    this.sheetName[i] = wb_hssf.getSheetName(i);
                     sheet[i] = wb_hssf.getSheetAt(i);
                 }
             }
